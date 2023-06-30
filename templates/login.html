@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>SD-WAN DevOps</title>
+   <link href="../static/css/login.css" media="screen" rel="stylesheet">
+   <link href="../static/css/reset.css" media="screen" rel="stylesheet">
+   <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,600italic,700italic,800italic,400,300,600,800' rel='stylesheet' type='text/css'>
+   <script src="../static/js/jquery-3.6.0.min.js"></script>
+   <script src="../static/js/validator.js"></script>
+   <script src="../static/js/main.js"></script>
+	 <link rel="stylesheet" href="../static/css/intlTelInput.css"/>
+	 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+ </head>
+<body>
+  <div class="container">
+          <img class="prismasdwan" src="../static/img/prisma-sd-wan.jpeg" alt="Prisma SD-WAN"/>
+          <div class="flat-design-form">
+              <ul class="tabs" id="myTab">
+                  <li><a class="active" href="#login" id="login-tab" name="login-tab"><span id="login_icon"></span>Login</a></li>
+                  <li><a href="#register" id="register-tab" name="register-tab"><span id="signup_icon"></span>Register</a></li>
+              </ul>
+           <div class="form-display show" id="login">
+             <h1>Login</h1>
+             <form action="/login" method="post" novalidate="">
+             <fieldset>
+               <ul>
+                   <li>
+                       <div class="item">
+                           <input name="email" placeholder="Email" required="required" type="text" value="{{ request.form.username }}">
+                       </div>
+                   </li>
+                   <li>
+                       <div class="item">
+                           <input name="password" placeholder="Password" required='required' type="password" value="{{ request.form.password }}">
+                       </div>
+                   </li>
+                   <li><input class="button-login float" type="submit" name="login" value="Login"> <input class="button-login float" type="submit" name="forgot" value="Forgot"></li>
+        	 					{% if message %}
+        	 					<p class="error">{{ message }}</p>
+      						 	{% endif %}
+               </ul>
+             </fieldset>
+            </form>
+            </div>
+          <div class="form-display hide" id="register">
+            <h1>Register</h1>
+            <form id="lookup" action="/register" method="post" novalidate="">
+            <fieldset>
+                <ul>
+                    <li>
+                        <div class="item">
+                            <input name="first" if="first" placeholder="First" required="required" type="text">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="item">
+                            <input name="last" placeholder="Last" required="required" type="text">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="item">
+                            <input class='email' name="email" placeholder="Email" required="required" type="email">
+                        </div>
+                    </li>
+                    <li>
+                        <div class="item">
+                            <input name="password" placeholder="Password (min 8 characters)" required='required' type="password">
+                        </div>
+                    <li>
+                        <div class="item">
+                            <input name="confirmpassword" placeholder="Confirm Password" required='required' type="password">
+                        </div>
+                    </li>
+                    <li><input class="button-register" id='send' type="submit" value="Sign Up"></li>
+										<p>Account approval will be required. Only Palo Alto Networks employees will be automatically approved. <a href="disclaimer" target="_blank">Disclaimer</a></p>
+										{% if register %}
+        	 					<p class="error">{{ register }} </p>
+										{% endif %}
+                </ul>
+            </fieldset>
+        </form>
+    </div>
+    </div>
+</body>

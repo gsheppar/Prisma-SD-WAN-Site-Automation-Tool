@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SD-WAN DevOps</title>
+  <link rel="stylesheet" href="../static/css/styles.css" />
+  <link rel="shortcut icon" type="image/x-icon" href="../static/img/favicon.ico">
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__brand">
+      <img class="navbar__logo" src="../static/img/prisma-sd-wan.jpeg" alt="Prisma SD-WAN" />SD-WAN DevOps
+    </div>
+    <ul class="navbar__navigation">
+      <li class="navbar__navigation-item">
+        <div class="dropdown">
+          <a href="home" class="navbar__active">Home</a>
+          <div class="dropdown-content">
+            <a href="home">Home</a>
+            <a href="token-help">Token Help</a>
+            <a href="custom-tools">Custom Tools</a>
+          </div>
+        </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__link">Deploy</a>
+        <div class="dropdown-content">
+          <a href="make">Make</a>
+          <a href="update">Update</a>
+          <a href="build">Build</a>
+          <a href="deploy">Deploy</a>
+          <a href="delete">Delete</a>
+          <a href="backup">Backup</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__link">Tools</a>
+        <div class="dropdown-content">
+          <a href="lqm-all-apps">LQM All Apps</a>
+          <a href="vpnmesh">VPN Mesh</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+        <a href="profile" class="navbar__link">Profile</a>
+      </li>
+    </ul>
+  </header>
+  <main class="main">
+    <div class="flex-container">
+      <div class="flex-child-left">
+        <h1 class="file">Info</h1>
+        <p class="homecard">Hi {{ name }} Welcome! <br> <br>
+          If this is your first time logging in, let me provide you some helpful information! To get started you will need to generate an auth token and apply it here. The auth token can be from any account, but you will need
+          to disable session-lock and make sure your account is not IP restricted (for example Palo Alto Network employees). From there we have many tools to make your life easier! Make, deploy sites and create VPN meshs just to name a few. Please let us
+          know if you have any questions, problems or feedback. Thanks and welcome to SD-WAN DevOps!
+        </p>
+      </div>
+      <div class="flex-child-right1" style="margin-left: 100px; margin-top:50px">
+        <p class="card"><b>Current Auth Token:</b> {{ auth }} </p>
+        {% if token_check %}
+        <p class="card"><b>Token Check:</b> <span class="green-warning"> {{ token_check }} </span></p>
+        {% else %}
+        <p class="card"><b>Token Check:</b> <span class="red-warning"> {{ token_check }} </span></p>
+        {% endif %}
+        {% if tenant %}
+        <p class="card"><b>Tenant Name:</b> {{ tenant }} </p>
+        {% endif %}
+        <form action="/home" method="post">
+        <div class="input ">
+        <input class="user_input" name="auth-token" placeholder="Update Auth Token" required='required' type="text">
+        </div>
+        <div>
+        <button type="submit" class="form__submit" style="float: left" name="auth">Save</button>
+        <p class="token_help"><a href="token-help">Token Help</a></p>
+        </div>
+        </form>
+        <form action="/profile" method="post">
+      </div>
+    </div>
+    <div class="flex-container">
+      <img src="../static/img/devopshome.jpg" class="mainbackground"/>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer__content">
+      <section class="left">
+        <a class="footer__item" href="mailto:{{ support }}">Contact</a>
+      </section>
+      <section class="right">
+        <div class="footer__column">
+          <a class="footer__item" href="log_out">Log Out</a>
+        </div>
+      </section>
+    </div>
+  </footer>
+</body>
+</html>

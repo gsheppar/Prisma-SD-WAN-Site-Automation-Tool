@@ -22,6 +22,8 @@ MIT
  
  - docker-compose build --no-cache
  - docker-compose up -d
+
+ - Access via http://localhost:5001/
  
 #### Version
 | Version | Build | Changes |

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SD-WAN DevOps</title>
+  <link rel="stylesheet" href="../static/css/styles.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+  <script>
+  $(document).ready(function(){
+      //connect to the socket server.
+      socket = io.connect();
+
+      socket.on('newmessage', function(msg) {
+      console.log("Received number: " + msg.message);
+      message = msg.message + '<br>'
+      $('#output').append(message);
+  });
+});
+function myFunction() {
+  var selected = document.getElementById("selected").value;
+  document.getElementById("confirm_input").value = "";
+  $('#label').html("Are you sure you want to delete " + selected + "? If so please type confirm in the box below");
+  document.getElementById('id_confrmdiv').style.display="block";
+  document.getElementById('id_truebtn').onclick = function(){
+    document.getElementById('id_confrmdiv').style.display="none";
+    var confirm = document.getElementById("confirm_input").value;
+        if (confirm == "confirm") {
+          console.log(selected)
+          document.getElementById("myForm").submit();
+        }
+      else {
+        console.log("wrong")
+          error = '<span class="red-warning">Error:</span> Please type confirm'
+          $('#variable_status').html(error);
+          }
+    }
+  document.getElementById('id_falsebtn').onclick = function(){
+       document.getElementById('id_confrmdiv').style.display="none";
+       console.log("cancel")
+  };
+}
+  </script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__brand">
+      <img class="navbar__logo" src="../static/img/prisma-sd-wan.jpeg" alt="Prisma SD-WAN" />SD-WAN DevOps
+    </div>
+    <ul class="navbar__navigation">
+      <li class="navbar__navigation-item">
+        <div class="dropdown">
+          <a class="navbar__link">Home</a>
+          <div class="dropdown-content">
+            <a href="home">Home</a>
+            <a href="token-help">Token Help</a>
+            <a href="custom-tools">Custom Tools</a>
+          </div>
+        </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__active">Deploy</a>
+        <div class="dropdown-content">
+          <a href="make">Make</a>
+          <a href="update">Update</a>
+          <a href="build">Build</a>
+          <a href="deploy">Deploy</a>
+          <a href="delete">Delete</a>
+          <a href="backup">Backup</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__link">Tools</a>
+        <div class="dropdown-content">
+          <a href="lqm-all-apps">LQM All Apps</a>
+          <a href="vpnmesh">VPN Mesh</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+        <a href="profile" class="navbar__link">Profile</a>
+      </li>
+    </ul>
+  </header>
+  <main class="main">
+    <div class="flex-container">
+      <div class="flex-child-left">
+        <h3>Verify</h3>
+        {% if token_check %}
+        <p class="card"><b>Token Check:</b> <span class="green-warning"> {{ token_check }} </span></p>
+        {% else %}
+        <p class="card"><b>Token Check:</b> <span class="red-warning"> {{ token_check }} </span></p>
+        {% endif %}
+        {% if tenant %}
+        <p class="card"><b>Tenant Name:</b> {{ tenant }} </p>
+        {% endif %}
+        <p class="card">Please select a site to delete</p>
+        {% if message %}
+          {% if error %}
+            <p class="red-warning">{{ message }}</p>
+            {% else %}
+            <p class="green-warning">{{ message }}</p>
+            {% endif %}
+        {% endif %}
+        <p id="variable_status"></p>
+        <div id="id_confrmdiv">
+          <label id="label"></label>
+          <div class="popup_message">
+            <input id="confirm_input" name="description" class="user_input" type="text">
+          </div>
+          <button id="id_truebtn" class="popup__submit">Submit</button>
+          <button id="id_falsebtn" class="popup__delete">Cancel</button>
+        </div>
+          <h4>Verify Site</h4>
+          <form id="myForm" action="/delete" method="post" enctype="multipart/form-data">
+          <div class=input>
+              <label class="input_label_build">Site List:</label>
+  	          <select id="selected" class="list_build" name="site">
+                {% for item in site_list %}
+                <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+  	           </select>
+          </div>
+          </form>
+            <button class="form__delete" data-inline="true" name="delete" onclick="myFunction()">Delete</button>
+        </div>
+      <div class="flex-child-right">
+        <h3>Console Output</h3>
+        <div class="logging_window">
+          <pre class="pre" id="output"></pre>
+        </div>
+          <form action="/delete" method="post">
+          <div>
+            <button type="submit" class="form__cancel_output" name="cancel">Cancel</button>
+            <button type="submit" class="form__submit_output" name="download">Download Log</button>
+          </div>
+          <div>
+          </div>
+        </form>
+      </div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer__content">
+      <section class="left">
+        <a class="footer__item" href="mailto:{{ support }}">Contact</a>
+      </section>
+      <section class="right">
+        <div class="footer__column">
+          <a class="footer__item" href="log_out">Log Out</a>
+        </div>
+      </section>
+    </div>
+  </footer>
+</body>
+</html>

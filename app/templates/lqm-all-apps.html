@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SD-WAN DevOps</title>
+  <link rel="stylesheet" href="../static/css/styles.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+  <script>
+  $(document).ready(function(){
+      //connect to the socket server.
+      socket = io.connect();
+
+      socket.on('newmessage', function(msg) {
+      console.log("Received number: " + msg.message);
+      message = msg.message + '<br>'
+      $('#output').append(message);
+      });
+      socket.on('viewconfig', function(msg) {
+      console.log("Received number: " + msg.message);
+      message = msg.message + '<br>'
+      $('#output').html(message);
+      });
+      });
+      function myFunction() {
+      let site = document.getElementById("site").value;
+      console.log("form data is", site);
+      socket.emit("view", { site: site })
+      }
+  </script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__brand">
+      <img class="navbar__logo" src="../static/img/prisma-sd-wan.jpeg" alt="Prisma SD-WAN" />SD-WAN DevOps
+    </div>
+    <ul class="navbar__navigation">
+      <li class="navbar__navigation-item">
+        <div class="dropdown">
+          <a class="navbar__link">Home</a>
+          <div class="dropdown-content">
+            <a href="home">Home</a>
+            <a href="token-help">Token Help</a>
+            <a href="custom-tools">Custom Tools</a>
+          </div>
+        </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__link">Deploy</a>
+        <div class="dropdown-content">
+          <a href="make">Make</a>
+          <a href="update">Update</a>
+          <a href="build">Build</a>
+          <a href="deploy">Deploy</a>
+          <a href="delete">Delete</a>
+          <a href="backup">Backup</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+      <div class="dropdown">
+        <a class="navbar__active">Tools</a>
+        <div class="dropdown-content">
+          <a href="lqm-all-apps">LQM All Apps</a>
+          <a href="vpnmesh">VPN Mesh</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar__navigation-item">
+        <a href="profile" class="navbar__link">Profile</a>
+      </li>
+    </ul>
+  </header>
+  <main class="main">
+    <div class="flex-container">
+      <div class="flex-child-left">
+        <h3>LQM All Apps</h3>
+        {% if token_check %}
+        <p class="card"><b>Token Check:</b> <span class="green-warning"> {{ token_check }} </span></p>
+        {% else %}
+        <p class="card"><b>Token Check:</b> <span class="red-warning"> {{ token_check }} </span></p>
+        {% endif %}
+        {% if tenant %}
+        <p class="card"><b>Tenant Name:</b> {{ tenant }} </p>
+        {% endif %}
+        <p class="card">Please enter your latency and packet loss values and select a site that you want to set/update for All-Apps LQM thresholds. To delete the All-Apps settings just select the site.</p>
+        {% if message %}
+          {% if error %}
+            <p class="red-warning">{{ message }}</p>
+            {% else %}
+            <p class="green-warning">{{ message }}</p>
+            {% endif %}
+        {% endif %}
+        <div>
+          <h4>Set Latency and Loss Thresholds</h4>
+          <form action="/lqm-all-apps" method="post" enctype="multipart/form-data">
+          <div class=input>
+            <label class="input_label">Latency</label>
+            <input class="user_input" name="latency" placeholder="150" type="text">
+          </div>
+          <div class=input>
+            <label class="input_label">Packet Loss %</label>
+            <input class="user_input" name="loss" placeholder="3" type="text">
+          </div>
+          <h4>Choose Site</h4>
+          <div class=input>
+              <label class="input_label_build">Site List:</label>
+  	          <select class="list_build" name="site" id="site">
+                {% for item in site_list %}
+                <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+                <option value="All">All</option>
+  	           </select>
+          </div>
+            <button type="submit_deploy" class="form__submit" data-inline="true" name="deploy">Deploy</button>
+            <button type="submit_deploy" class="form__delete" data-inline="true" name="delete">Delete</button>
+          </div>
+          </form>
+      </div>
+      <div class="flex-child-right">
+        <h3>Console Output</h3>
+        <div class="logging_window">
+          <pre class="pre" id="output"></pre>
+        </div>
+          <form action="/lqm-all-apps" method="post">
+          <div>
+            <button type="submit" class="form__cancel_output" name="cancel">Cancel</button>
+            <button type="submit" class="form__submit_output" name="download">Download Log</button>
+          </div>
+          <div>
+          </div>
+        </form>
+      </div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer__content">
+      <section class="left">
+        <a class="footer__item" href="mailto:{{ support }}">Contact</a>
+      </section>
+      <section class="right">
+        <div class="footer__column">
+          <a class="footer__item" href="log_out">Log Out</a>
+        </div>
+      </section>
+    </div>
+  </footer>
+</body>
+</html>

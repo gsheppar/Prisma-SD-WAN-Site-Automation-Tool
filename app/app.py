@@ -54,6 +54,7 @@ MONGODB_PASSWORD = os.environ.get("MONGODB_PASSWORD", "PrismaSDWAN")
 SDWAN_CONTROLLER = None
 SDWAN_SSL_VERIFY = True
 SITE_API = "4.7"
+CUSTOM_BUILD = ["Standard"]
 
 ##############################################
 ######## Flask and SocketIO Setup ############
@@ -222,9 +223,7 @@ def create_admin_user():
             new_user["auth_valid"] = False
             new_user["ip_address"] = "None"
             new_user["custom_tools"] = ["None"]
-            custom_build = []
-            custom_build.append("Standard")
-            new_user["custom_build"] = custom_build
+            new_user["custom_build"] = CUSTOM_BUILD
             new_user.save()
             print("Created admin user")
     except Exception as e:
@@ -723,6 +722,8 @@ def broken_queue(payload_dict):
 
 def getSite(username):
     user = Users.objects(username=username).first()
+    
+    
     token = user["auth"]
     token_check, tenant = auth_check(token)
     if token_check:
@@ -1106,6 +1107,7 @@ def login():
                         user["tenant"] = tenant
                         user["process"] = False
                         log = user["log"]
+                        user["custom_build"] = CUSTOM_BUILD
                         user.save()
                         local_storage = user["local_storage"]
                         try:
@@ -1172,9 +1174,7 @@ def register():
                         new_user["auth_valid"] = False
                         new_user["ip_address"] = "None"
                         new_user["custom_tools"] = ["None"]
-                        custom_build = []
-                        custom_build.append("Standard")
-                        new_user["custom_build"] = custom_build
+                        new_user["custom_build"] = CUSTOM_BUILD
                         new_user.save()
                         message = "Your account is now active. Please login"                        
                     else:
@@ -2059,22 +2059,6 @@ def build_site(payload_dict):
                         parameter_dict  = standard(site_csv_dict)
                         site_build_list.append(parameter_dict)
                         message = ('CSV import successful for ' + name + ' and now using standard build')
-                    elif payload_dict["custom"] == "Custom_dhcp_static":
-                        parameter_dict  = custom_dhcp_static(site_csv_dict)
-                        site_build_list.append(parameter_dict)
-                        message = ('CSV import successful for ' + name + ' and now using custom_dhcp_static build')
-                    elif payload_dict["custom"] == "Sunbelt":
-                        parameter_dict  = sunbelt(site_csv_dict)
-                        site_build_list.append(parameter_dict)
-                        message = ('CSV import successful for ' + name + ' and now using Sunbelt build')
-                    elif payload_dict["custom"] == "Fabick":
-                        parameter_dict  = fabick(site_csv_dict)
-                        site_build_list.append(parameter_dict)
-                        message = ('CSV import successful for ' + name + ' and now using fabick build')
-                    elif payload_dict["custom"] == "Allegis_EMEA":
-                        parameter_dict  = allegis_emea(site_csv_dict)
-                        site_build_list.append(parameter_dict)
-                        message = ('CSV import successful for ' + name + ' and now using Allegis EMEA build')
                     else:
                         message = ('Error: ' + payload_dict["custom"] + " does not exsist")
                     message_task_handler(username, message)
@@ -2086,22 +2070,6 @@ def build_site(payload_dict):
                     parameter_dict  = standard(site_csv_dict)
                     site_build_list.append(parameter_dict)
                     message = ('CSV import successful for ' + name + ' and now using standard build')
-                elif payload_dict["custom"] == "Custom_dhcp_static":
-                    parameter_dict  = custom_dhcp_static(site_csv_dict)
-                    site_build_list.append(parameter_dict)
-                    message = ('CSV import successful for ' + name + ' and now using custom_dhcp_static build')
-                elif payload_dict["custom"] == "Sunbelt":
-                    parameter_dict  = sunbelt(site_csv_dict)
-                    site_build_list.append(parameter_dict)
-                    message = ('CSV import successful for ' + name + ' and now using Sunbelt build')
-                elif payload_dict["custom"] == "Fabick":
-                    parameter_dict  = fabick(site_csv_dict)
-                    site_build_list.append(parameter_dict)
-                    message = ('CSV import successful for ' + name + ' and now using fabick build')
-                elif payload_dict["custom"] == "Allegis_EMEA":
-                    parameter_dict  = allegis_emea(site_csv_dict)
-                    site_build_list.append(parameter_dict)
-                    message = ('CSV import successful for ' + name + ' and now using Allegis EMEA build')
                 else:
                     message = ('Error: ' + payload_dict["custom"] + " does not exsist")
                 message_task_handler(username, message)

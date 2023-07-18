@@ -2,7 +2,7 @@
 """
 Configuration EXPORT worker/script
 
-**Version:** 1.9.0b2
+**Version:** 2.0.0b1
 
 **Author:** CloudGenix
 
@@ -152,6 +152,7 @@ ELEMENT_CELLULAR_MODULES_FIRMWARE_STR = "element_cellular_modules_firmware"
 RADII_STR = "radii"
 MULTICASTSOURCESITECONFIGS_STR = "multicastsourcesiteconfigs"
 # MULTICASTPEERGROUPS_STR = "multicastpeergroups"
+DEVICE_ID_CONFIGS_STR = "deviceidconfigs"
 
 # Global Config Cache holders
 sites_cache = []
@@ -603,6 +604,7 @@ def build_version_strings():
     global ELEMENT_CELLULAR_MODULES_FIRMWARE_STR
     global RADII_STR
     global MULTICASTSOURCESITECONFIGS_STR
+    global DEVICE_ID_CONFIGS_STR
 
     if not STRIP_VERSIONS:
         # Config container strings
@@ -643,7 +645,8 @@ def build_version_strings():
         ELEMENT_CELLULAR_MODULES_STR = add_version_to_object(sdk.get.element_cellular_modules, "element_cellular_modules")
         ELEMENT_FIRMWARE_CELLULAR_MODULES_STR = add_version_to_object(sdk.get.element_cellular_modules_firmware, "element_cellular_modules_firmware")
         RADII_STR = add_version_to_object(sdk.get.radii, "radii")
-        MULTICASTSOURCESITECONFIGS_STR = add_version_to_object(sdk.get.radii, "multicastsourcesiteconfigs")
+        MULTICASTSOURCESITECONFIGS_STR = add_version_to_object(sdk.get.multicastsourcesiteconfigs, "multicastsourcesiteconfigs")
+        DEVICE_ID_CONFIGS_STR = add_version_to_object(sdk.get.deviceidconfigs, "deviceidconfigs")
 
 def strip_meta_attributes(obj, leave_name=False, report_id=None):
     """
@@ -752,7 +755,7 @@ def _pull_config_for_single_site(site_name_id):
 
         strip_meta_attributes(waninterface_template)
         # check name for duplicates
-        checked_waninterface_name = check_name(ui_normalized_name, dup_name_dict, 'Waninterface',
+        checked_waninterface_name = check_name(socket, username, log, ui_normalized_name, dup_name_dict, 'Waninterface',
                                                error_site_txt="{0}({1})".format(error_site_name,
                                                                                 site_id))
         # update id name cache in case name changed.
@@ -775,7 +778,7 @@ def _pull_config_for_single_site(site_name_id):
         name_lookup_in_template(lannetwork_template, 'security_policy_set', id_name_cache)
         strip_meta_attributes(lannetwork_template)
         # check name for duplicates
-        checked_lannetwork_name = check_name(lannetwork['name'], dup_name_dict, 'Laninterface',
+        checked_lannetwork_name = check_name(socket, username, log, lannetwork['name'], dup_name_dict, 'Laninterface',
                                              error_site_txt="{0}({1})".format(error_site_name,
                                                                               site_id))
         # update id name cache in case name changed.
@@ -798,7 +801,7 @@ def _pull_config_for_single_site(site_name_id):
         name_lookup_in_template(hubcluster_template, 'security_policy_set', id_name_cache)
         strip_meta_attributes(hubcluster_template, report_id=True)
         # check name for duplicates
-        checked_hubcluster_name = check_name(hubcluster['name'], dup_name_dict, 'Hubcluster',
+        checked_hubcluster_name = check_name(socket, username, log, hubcluster['name'], dup_name_dict, 'Hubcluster',
                                              error_site_txt="{0}({1})".format(error_site_name,
                                                                               site_id))
         # update id name cache in case name changed.
@@ -835,7 +838,7 @@ def _pull_config_for_single_site(site_name_id):
         spokecluster_template = copy.deepcopy(spokecluster)
         strip_meta_attributes(spokecluster_template)
         # check name for duplicates
-        checked_spokecluster_name = check_name(spokecluster['name'], dup_name_dict, 'Spokecluster',
+        checked_spokecluster_name = check_name(socket, username, log, spokecluster['name'], dup_name_dict, 'Spokecluster',
                                                error_site_txt="{0}({1})".format(error_site_name,
                                                                                 site_id))
         # update id name cache in case name changed.
@@ -871,7 +874,7 @@ def _pull_config_for_single_site(site_name_id):
         name_lookup_in_template(site_extension_template, 'entity_id', id_name_cache)
         strip_meta_attributes(site_extension_template)
         # check for duplicate names
-        checked_site_extension_name = check_name(site_extension['name'], dup_name_dict, 'Site Extension',
+        checked_site_extension_name = check_name(socket, username, log, site_extension['name'], dup_name_dict, 'Site Extension',
                                                  error_site_txt="{0}({1})".format(error_site_name,
                                                                                   site_id))
         # update id name cache in case name changed.
@@ -966,6 +969,18 @@ def _pull_config_for_single_site(site_name_id):
         site[MULTICASTSOURCESITECONFIGS_STR].append(multicastsourcesiteconfigs_template)
 
     delete_if_empty(site, MULTICASTSOURCESITECONFIGS_STR)
+
+    site[DEVICE_ID_CONFIGS_STR] = []
+    response = sdk.get.deviceidconfigs(site['id'])
+    if not response.cgx_status:
+        throw_error("Device ID Config Fetch Failed: ", response)
+    deviceidconfigs_items = response.cgx_content['items']
+    for device_config in deviceidconfigs_items:
+        device_config_template = copy.deepcopy(device_config)
+        strip_meta_attributes(device_config_template)
+        site[DEVICE_ID_CONFIGS_STR].append(device_config_template)
+
+    delete_if_empty(site, DEVICE_ID_CONFIGS_STR)
 
     # Get Elements
     site[ELEMENTS_STR] = {}
@@ -1205,7 +1220,7 @@ def _pull_config_for_single_site(site_name_id):
             # ok. Check for duplicates if it is a namable interface. If a dup is found, rename.
             interface_type = interface_template.get('type', "Unknown Interface")
             if interface_type in nameable_interface_types:
-                checked_interface_name = check_name(interface['name'], dup_name_dict, interface_type,
+                checked_interface_name = check_name(socket, username, log, interface['name'], dup_name_dict, interface_type,
                                                     error_site_txt="{0}({1})".format(error_site_name,
                                                                                      site_id))
                 # update id name cache in case name changed.
@@ -1241,7 +1256,7 @@ def _pull_config_for_single_site(site_name_id):
                 staticroute_template['nexthops'] = nexthops_template
 
             # check for duplicate names
-            checked_staticroute_name = check_name(staticroute_template.get('name'), dup_name_dict, 'Static Route',
+            checked_staticroute_name = check_name(socket, username, log, staticroute_template.get('name'), dup_name_dict, 'Static Route',
                                                error_site_txt="{0}({1})".format(error_site_name,
                                                                                 site_id))
             # update id name cache in case name changed.
@@ -1299,7 +1314,7 @@ def _pull_config_for_single_site(site_name_id):
             name_lookup_in_template(bgp_peer_template, 'route_map_out_id', id_name_cache)
             strip_meta_attributes(bgp_peer_template)
             # check for duplicate names
-            checked_bgp_peer_name = check_name(bgp_peer['name'], dup_name_dict, 'BGP Peer',
+            checked_bgp_peer_name = check_name(socket, username, log, bgp_peer['name'], dup_name_dict, 'BGP Peer',
                                                error_site_txt="{0}({1})".format(error_site_name,
                                                                                 site_id))
             # update id name cache in case name changed.
@@ -1348,7 +1363,7 @@ def _pull_config_for_single_site(site_name_id):
             # name_lookup_in_template(routemap_template, 'route_map_in_id', id_name_cache)
             strip_meta_attributes(routemap_template)
             # check for duplicate names
-            checked_routemap_name = check_name(routemap['name'], dup_name_dict, 'Route Map',
+            checked_routemap_name = check_name(socket, username, log, routemap['name'], dup_name_dict, 'Route Map',
                                                error_site_txt="{0}({1})".format(error_site_name,
                                                                                 site_id))
             # update id name cache in case name changed.
@@ -1365,7 +1380,7 @@ def _pull_config_for_single_site(site_name_id):
             # name_lookup_in_template(aspath_access_list_template, 'route_map_in_id', id_name_cache)
             strip_meta_attributes(aspath_access_list_template)
             # check for duplicate names
-            checked_aspath_access_list_name = check_name(aspath_access_list['name'], dup_name_dict,
+            checked_aspath_access_list_name = check_name(socket, username, log, aspath_access_list['name'], dup_name_dict,
                                                          'AS-PATH Access List',
                                                          error_site_txt="{0}({1})".format(error_site_name,
                                                                                           site_id))
@@ -1383,7 +1398,7 @@ def _pull_config_for_single_site(site_name_id):
             # name_lookup_in_template(routing_prefixlist_template, 'route_map_in_id', id_name_cache)
             strip_meta_attributes(routing_prefixlist_template)
             # check for duplicate names
-            checked_routing_prefixlist_name = check_name(routing_prefixlist['name'], dup_name_dict, 'Prefix List',
+            checked_routing_prefixlist_name = check_name(socket, username, log, routing_prefixlist['name'], dup_name_dict, 'Prefix List',
                                                          error_site_txt="{0}({1})".format(error_site_name,
                                                                                           site_id))
             # update id name cache in case name changed.
@@ -1400,7 +1415,7 @@ def _pull_config_for_single_site(site_name_id):
             # name_lookup_in_template(ip_community_list_template, 'route_map_in_id', id_name_cache)
             strip_meta_attributes(ip_community_list_template)
             # check for duplicate names
-            checked_ip_community_list_name = check_name(ip_community_list['name'], dup_name_dict, 'IP-Community List',
+            checked_ip_community_list_name = check_name(socket, username, log, ip_community_list['name'], dup_name_dict, 'IP-Community List',
                                                         error_site_txt="{0}({1})".format(error_site_name,
                                                                                          site_id))
             # update id name cache in case name changed.
@@ -1523,7 +1538,7 @@ def _pull_config_for_single_site(site_name_id):
             name_lookup_in_template(element_extension_template, 'entity_id', id_name_cache)
             strip_meta_attributes(element_extension_template)
             # check for duplicate names
-            checked_element_extension_name = check_name(element_extension['name'], dup_name_dict, 'Element Extension',
+            checked_element_extension_name = check_name(socket, username, log, element_extension['name'], dup_name_dict, 'Element Extension',
                                                         error_site_txt="{0}({1})".format(error_site_name,
                                                                                          site_id))
             # update id name cache in case name changed.
@@ -1764,11 +1779,21 @@ def _pull_config_for_single_site(site_name_id):
                                                 'interface_id', id_name_cache)
                         spoke_ha_config_track_interfaces_template.append(spoke_ha_config_track_interfaces_entry_template)
                     spoke_ha_config_track_template['interfaces'] = spoke_ha_config_track_interfaces_template
+                spoke_ha_config_track_waninterfaces = spoke_ha_config_track.get("waninterfaces")
+                if spoke_ha_config_track_waninterfaces:
+                    spoke_ha_config_track_waninterfaces_template = []
+                    for spoke_ha_config_track_waninterfaces_entry in spoke_ha_config_track_waninterfaces:
+                        spoke_ha_config_track_waninterfaces_entry_template = \
+                            copy.deepcopy(spoke_ha_config_track_waninterfaces_entry)
+                        name_lookup_in_template(spoke_ha_config_track_waninterfaces_entry_template,
+                                                'wan_interface_id', id_name_cache)
+                        spoke_ha_config_track_waninterfaces_template.append(spoke_ha_config_track_waninterfaces_entry_template)
+                    spoke_ha_config_track_template['waninterfaces'] = spoke_ha_config_track_waninterfaces_template
                 spoke_ha_config_template['track'] = spoke_ha_config_track_template
             element_template['spoke_ha_config'] = spoke_ha_config_template
 
         # check for duplicate names
-        checked_element_name = check_name(element['name'], dup_name_dict_elements, 'Element',
+        checked_element_name = check_name(socket, username, log, element['name'], dup_name_dict_elements, 'Element',
                                           error_site_txt="{0}({1})".format(error_site_name,
                                                                            site_id))
         # update id name cache in case name changed.
@@ -1791,7 +1816,7 @@ def _pull_config_for_single_site(site_name_id):
 
     strip_meta_attributes(site_template)
     # check for duplicate names
-    checked_site_name = check_name(site['name'], dup_name_dict_sites, 'Site')
+    checked_site_name = check_name(socket, username, log, site['name'], dup_name_dict_sites, 'Site')
     # update id name cache in case name changed.
     id_name_cache[site['id']] = checked_site_name
     CONFIG[SITES_STR][checked_site_name] = site_template

@@ -14,8 +14,8 @@ MIT
  - Update Dockercompose if you want to change any of the MONGODB DB, Username and Password
  
  - Built on the following below
- * CloudGenix/sdk-python = 6.0.2b1
- * CloudGenix/cloudgenix_config = 1.7.0b1
+ * CloudGenix/sdk-python = 6.2.2b1
+ * CloudGenix/cloudgenix_config = 2.0.0b1
  
 ### Caveats and known issues:
  - This is a PREVIEW release, hiccups to be expected. Please file issues on Github for any problems.

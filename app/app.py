@@ -267,11 +267,11 @@ def create_queue_db():
 def auth_check(auth):
     try:
         cgx_session = cloudgenix.API(controller=SDWAN_CONTROLLER, ssl_verify=SDWAN_SSL_VERIFY, update_check=False)
+        #cgx_session.set_debug(2)
         cgx_session.interactive.use_token(auth)
         if cgx_session.tenant_name:
             auth_valid = True
             tenant = cgx_session.tenant_name
-            cgx_session.get.logout()
             return auth_valid, tenant
         else:
             auth_valid = False
@@ -724,110 +724,112 @@ def broken_queue(payload_dict):
 def getSite(username):
     user = Users.objects(username=username).first()
     token = user["auth"]
-    try:
-        site_names = []
-        site_tags = []
-        image_options = []
-        machines = []
-        domains = []
-        publicwan = []
-        privatewan = []
-        element_list = []
-        blank = []
-        cgx_session = cloudgenix.API(controller=SDWAN_CONTROLLER, ssl_verify=SDWAN_SSL_VERIFY, update_check=False)
-        cgx_session.interactive.use_token(token)
-        site_id2n = {}
-        if cgx_session.tenant_name:
-            for site in cgx_session.get.sites().cgx_content["items"]:
-                id = site['id']
-                name = site['name']
-                site_id2n[id] = name
-                site_names.append(site['name'])
-                tags = site['tags']
-                if tags:
-                    for tag in tags:
-                        if tag not in site_tags:
-                            site_tags.append(tag)
-            for image in cgx_session.get.element_images().cgx_content["items"]:
-                image_options.append(image['version'])
-            for machine in cgx_session.get.machines().cgx_content["items"]:
-                if machine["connected"]:
-                    if machine["machine_state"] == "allocated":
-                        machines.append(machine["sl_no"])
-            for binding in cgx_session.get.servicebindingmaps().cgx_content["items"]:
-                domains.append(binding["name"])
-            for networks in cgx_session.get.wannetworks().cgx_content["items"]:
-                if networks['type'] == 'publicwan':
-                    publicwan.append(networks['name'])
-                if networks['type'] == 'privatewan':
-                    privatewan.append(networks['name'])
-            for policy in cgx_session.get.securitypolicysets().cgx_content["items"]:
-                security_policy.append(policy['name'])
-            elements = {}
-            for element in cgx_session.get.elements().cgx_content["items"]:
-                elem_id = element['id']
-                name = element['name']
-                sid = element['site_id']
-                if name:
-                    try:
-                        site_name = site_id2n[sid]
-                        if site_name in elements.keys():
-                            name_list = elements[site_name]
-                            name_list.append(name)
-                            name_list.sort()
-                            elements[site_name] = name_list
-                        else:
-                            name_list = []
-                            name_list.append(name)
-                            elements[site_name] = name_list
-                    except:
-                        pass
-            element_list.append(elements)
-            image_options.sort(reverse=True)
-            if Site.objects(username=username):
-                site = Site.objects(username=username).first()
-                site['site_names'] = site_names
-                site['site_tags'] = site_tags
-                site['csv_name'] = ""
-                site['csv_site_names'] = blank
-                site['make_file'] = ""
-                site['make_csv'] = blank
-                site['image_options'] = image_options
-                site['machines'] = machines
-                site['domains'] = domains
-                site['publicwan'] = publicwan
-                site['privatewan'] = privatewan
-                site['elements'] = element_list
-                site.save()
-                print("User site object database updated")
-            else:
-                site = Site()
-                site['username'] = username
-                site['site_names'] = site_names
-                site['site_tags'] = site_tags
-                site['csv_name'] = ""
-                site['csv_site_names'] = blank
-                site['make_file'] = ""
-                site['make_csv'] = blank
-                site['image_options'] = image_options
-                site['machines'] = machines
-                site['domains'] = domains
-                site['publicwan'] = publicwan
-                site['privatewan'] = privatewan
-                site['elements'] = element_list
-                site.save()
-                print("User site object database created")
-        return
-    except Exception as e:
-        print("Get Site Failed")
-        print(str(e))
-        if Site.objects(username=username):
-            print("Already has a Site object")
-        else:
+    token_check, tenant = auth_check(token)
+    if token_check:
+        try:
+            site_names = []
+            site_tags = []
+            image_options = []
+            machines = []
+            domains = []
+            publicwan = []
+            privatewan = []
+            element_list = []
             blank = []
-            add = Site(username=username, site_names=blank, site_tags=blank, csv_name="", csv_site_names=blank, make_file="", make_csv=blank, image_options=blank, machines=blank, domains=blank, publicwan=blank, privatewan=blank, elements=blank)
-            add.save()
-        return
+            cgx_session = cloudgenix.API(controller=SDWAN_CONTROLLER, ssl_verify=SDWAN_SSL_VERIFY, update_check=False)
+            cgx_session.interactive.use_token(token)
+            site_id2n = {}
+            if cgx_session.tenant_name:
+                for site in cgx_session.get.sites().cgx_content["items"]:
+                    id = site['id']
+                    name = site['name']
+                    site_id2n[id] = name
+                    site_names.append(site['name'])
+                    tags = site['tags']
+                    if tags:
+                        for tag in tags:
+                            if tag not in site_tags:
+                                site_tags.append(tag)
+                for image in cgx_session.get.element_images().cgx_content["items"]:
+                    image_options.append(image['version'])
+                for machine in cgx_session.get.machines().cgx_content["items"]:
+                    if machine["connected"]:
+                        if machine["machine_state"] == "allocated":
+                            machines.append(machine["sl_no"])
+                for binding in cgx_session.get.servicebindingmaps().cgx_content["items"]:
+                    domains.append(binding["name"])
+                for networks in cgx_session.get.wannetworks().cgx_content["items"]:
+                    if networks['type'] == 'publicwan':
+                        publicwan.append(networks['name'])
+                    if networks['type'] == 'privatewan':
+                        privatewan.append(networks['name'])
+                for policy in cgx_session.get.securitypolicysets().cgx_content["items"]:
+                    security_policy.append(policy['name'])
+                elements = {}
+                for element in cgx_session.get.elements().cgx_content["items"]:
+                    elem_id = element['id']
+                    name = element['name']
+                    sid = element['site_id']
+                    if name:
+                        try:
+                            site_name = site_id2n[sid]
+                            if site_name in elements.keys():
+                                name_list = elements[site_name]
+                                name_list.append(name)
+                                name_list.sort()
+                                elements[site_name] = name_list
+                            else:
+                                name_list = []
+                                name_list.append(name)
+                                elements[site_name] = name_list
+                        except:
+                            pass
+                element_list.append(elements)
+                image_options.sort(reverse=True)
+                if Site.objects(username=username):
+                    site = Site.objects(username=username).first()
+                    site['site_names'] = site_names
+                    site['site_tags'] = site_tags
+                    site['csv_name'] = ""
+                    site['csv_site_names'] = blank
+                    site['make_file'] = ""
+                    site['make_csv'] = blank
+                    site['image_options'] = image_options
+                    site['machines'] = machines
+                    site['domains'] = domains
+                    site['publicwan'] = publicwan
+                    site['privatewan'] = privatewan
+                    site['elements'] = element_list
+                    site.save()
+                    print("User site object database updated")
+                else:
+                    site = Site()
+                    site['username'] = username
+                    site['site_names'] = site_names
+                    site['site_tags'] = site_tags
+                    site['csv_name'] = ""
+                    site['csv_site_names'] = blank
+                    site['make_file'] = ""
+                    site['make_csv'] = blank
+                    site['image_options'] = image_options
+                    site['machines'] = machines
+                    site['domains'] = domains
+                    site['publicwan'] = publicwan
+                    site['privatewan'] = privatewan
+                    site['elements'] = element_list
+                    site.save()
+                    print("User site object database created")
+            return
+        except Exception as e:
+            print("Get Site Failed")
+            print(str(e))
+            if Site.objects(username=username):
+                print("Already has a Site object")
+            else:
+                blank = []
+                add = Site(username=username, site_names=blank, site_tags=blank, csv_name="", csv_site_names=blank, make_file="", make_csv=blank, image_options=blank, machines=blank, domains=blank, publicwan=blank, privatewan=blank, elements=blank)
+                add.save()
+    return
 
 ##############################################
 ########## Socket IO Tasks ###################
@@ -1185,7 +1187,6 @@ def register():
 
 @app.route("/home", methods=["GET", "POST"])
 def home():
-    print(SUPPORT_EMAIL)
     if current_user.is_authenticated:
          username = current_user.username
          user = Users.objects(username=username).first()

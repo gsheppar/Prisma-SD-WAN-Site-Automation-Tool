@@ -11680,7 +11680,7 @@ def go_do_two(user, token, filepath, logfile, socketio, Users, SDWAN_CONTROLLER,
         message = "Your YAML file is formatted incorrectly."
         throw_error(socket, username, log, message, str(e))
     
-    if "1.9." not in loaded_config["config_version"]:
+    if "2.0." not in loaded_config["config_version"]:
         message = ('Your YAML file is version ' + loaded_config["config_version"] + ' so loading apiversion based off YAML.\n')
         output_message(message)
         apiversion = 'yaml'
